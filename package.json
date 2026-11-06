@@ -2,7 +2,7 @@
   "name": "gooffice",
   "private": true,
   "scripts": {
-    "test": "node --test tests/project.test.cjs tests/cloud-store.test.mjs",
+    "test": "node --test tests/project.test.cjs tests/cloud-store.test.mjs tests/visual-effects.test.mjs",
     "test:rules": "firebase emulators:exec --only firestore --project demo-gooffice-rules --config firebase.emulator.json \"node --test --test-concurrency=1 tests/firestore.emulator.test.mjs\""
   },
   "devDependencies": {

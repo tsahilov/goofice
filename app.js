@@ -1,9 +1,13 @@
+import { createVisualEffects } from './visual-effects.mjs';
 (() => {
   "use strict";
   const { MEMBERS, OFFICE_TIME_ZONE, dateId, calendarDates, isPast, canEdit, nextDayDelay } = window.OfficePlanner;
   const calendar = document.querySelector("#calendar");
   const options = document.querySelector("#member-options");
   const announcement = document.querySelector("#announcement");
+  const effects = createVisualEffects(calendar, document.querySelector('.site-header'));
+  let identityRendered = false;
+  let visualMember = null;
   const fullDate = new Intl.DateTimeFormat("ru-RU", { timeZone: OFFICE_TIME_ZONE, weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const shortDate = new Intl.DateTimeFormat("ru-RU", { timeZone: OFFICE_TIME_ZONE, day: "2-digit", month: "long" });
   const weekday = new Intl.DateTimeFormat("ru-RU", { timeZone: OFFICE_TIME_ZONE, weekday: "long" });
@@ -21,6 +25,8 @@
     return node;
   }
   function renderIdentity() {
+    const changed = identityRendered && visualMember !== selectedMember;
+    effects.identity(selectedMember);
     const current = MEMBERS.find(member => member.id === selectedMember);
     if (current) document.documentElement.style.setProperty("--accent-color", current.color);
     else document.documentElement.style.removeProperty("--accent-color");
@@ -29,10 +35,14 @@
       button.type = "button";
       button.dataset.member = member.id;
       button.setAttribute("aria-pressed", String(member.id === selectedMember));
+      button.classList.toggle('is-entering', changed && member.id === selectedMember);
       return button;
     }));
+    visualMember = selectedMember;
+    identityRendered = true;
   }
   function renderCalendar(now) {
+    effects.resetCards();
     const dates = calendarDates(now);
     const focusedDate = document.activeElement?.dataset.date;
     const fragment = document.createDocumentFragment();
@@ -57,6 +67,7 @@
         time.dateTime = key;
         if (key === dateId(now)) time.setAttribute("aria-current", "date");
         card.append(time, element("span", "attendance"));
+        effects.attach(card);
         tile.append(label, card);
         days.append(tile);
       });
@@ -74,6 +85,7 @@
       card.setAttribute("aria-busy", String(store.isBusy(card.dataset.date)));
       card.setAttribute("aria-pressed", String(selected));
       card.classList.toggle("is-selected", selected);
+      effects.sync(card, selected);
       const names = marks.map(mark => {
         const person = MEMBERS.find(member => member.id === mark.memberId);
         return element("span", person.id === selectedMember ? "attendee is-current" : "attendee", person.name);
@@ -102,6 +114,7 @@
     try {
       const added = await store.toggle(date, memberId);
       if (added === undefined) return;
+      effects.confirmed(date, memberId, added);
       const person = MEMBERS.find(member => member.id === memberId);
       announcement.textContent = `${person.name}, ${date}: ${added ? 'отметка сохранена' : 'отметка снята'}.`;
     } catch { announcement.textContent = 'Не удалось сохранить отметку.'; }

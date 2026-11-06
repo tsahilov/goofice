@@ -5,6 +5,7 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "..");
 const port = Number(process.argv[2] ?? 4173);
 const files = new Map([
+  ["/visual-effects.mjs", ["visual-effects.mjs", "text/javascript; charset=utf-8"]],
   ["/firebase-init.mjs", ["firebase-init.mjs", "text/javascript; charset=utf-8"]],
   ["/cloud-store.mjs", ["cloud-store.mjs", "text/javascript; charset=utf-8"]],
   ["/", ["index.html", "text/html; charset=utf-8"]],
