@@ -1,0 +1,13 @@
+{
+  "name": "gooffice",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/project.test.cjs tests/cloud-store.test.mjs",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-gooffice-rules --config firebase.emulator.json \"node --test --test-concurrency=1 tests/firestore.emulator.test.mjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "5.0.0",
+    "firebase": "12.4.0",
+    "firebase-tools": "15.35.0"
+  }
+}
