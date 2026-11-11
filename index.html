@@ -8,27 +8,41 @@
   <meta name="description" content="Планировать дни, зачем-то">
   <title>gooffice</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./styles.css">
-  <script src="./data.js" defer></script>
-  <script type="module" src="./firebase-init.mjs"></script>
+  <link rel="stylesheet" href="./styles.css?v=composition-4">
+  <script src="./data.js?v=participants-1" defer></script>
+  <script type="module" src="./firebase-init.mjs?v=members-20"></script>
 </head>
 
 <body>
-  <header class="site-header">
+  <header class="masthead">
     <div class="header-content">
+      <p class="masthead-title">Дизайнеры планируют походы в офис.</p>
+      <span class="brand">gooffice</span>
+    </div>
+  </header>
+  <div class="intro-wrap">
+    <div class="intro">
+      <!-- Add the real Telegram URL as href on #telegram-bot-link when it is available. -->
+      <p>Выбирайте дни, в которые удобно пойти. Можно <a class="bot-link" id="telegram-bot-link">подключить бота</a> в телеграме, он будет присылать уведомление об отметках других людей.</p>
+      <p>Выбирайте себя один раз — браузер запомнит, <em>если не чистить историю.</em></p>
+    </div>
+  </div>
+  <div class="site-header">
+    <div class="member-bar">
       <div class="member-picker" id="member-picker" role="group" aria-label="Кто отмечается">
         <span class="member-label">Отмечается:</span>
         <div class="member-options" id="member-options"></div>
       </div>
-      <span class="brand">gooffice</span>
+      <form class="member-form" id="member-form" novalidate>
+        <label class="sr-only" for="new-member-name">Имя нового участника</label>
+        <div class="member-field">
+          <input id="new-member-name" type="text" name="memberName" maxlength="24" placeholder="Вписать своё имя" autocomplete="off" enterkeyhint="done" aria-describedby="member-error" disabled>
+        </div>
+        <p class="member-error" id="member-error" role="alert" hidden></p>
+      </form>
     </div>
-  </header>
+  </div>
   <main class="page">
-    <div class="intro">
-      <p>Это страничка, чтобы планировать походы в офис. Выбирайте себя один раз — <em>браузер запомнит</em>, если не
-        чистить историю. Можно отмечаться за других.</p>
-      <p>Тыкайте в дни, в которые удобно пойти. Дальше делайте с этим что захотите.</p>
-    </div>
     <div class="calendar" id="calendar" aria-label="Календарь походов в офис"></div>
     <p class="storage-note" id="storage-note" role="status">Загрузка отметок…</p>
     <noscript>Для календаря нужен JavaScript. Включите его в настройках браузера.</noscript>

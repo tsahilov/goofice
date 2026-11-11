@@ -34,6 +34,7 @@
 body {
   margin: 0;
   font-size: var(--font-size);
+  font-weight: 500;
 }
 
 button {
@@ -49,7 +50,7 @@ button:focus-visible {
   outline-offset: 4px;
 }
 
-.site-header {
+.masthead, .site-header {
   background: #fff;
   border-bottom: 1px solid #d9d9d9;
 }
@@ -59,10 +60,29 @@ button:focus-visible {
   justify-content: space-between;
   align-items: center;
   gap: 24px;
-  min-height: 48px;
+  min-height: 40px;
   max-width: 1680px;
   margin: 0 auto;
   padding: 0 var(--gutter);
+}
+
+.masthead-title { margin: 0; }
+
+.intro-wrap, .member-bar {
+  max-width: 1680px;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.intro-wrap { padding-block: 18px 32px; }
+
+.member-bar {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 12px;
+  line-height: 1.25;
+  padding-block: 4px 24px;
 }
 
 .brand {
@@ -75,31 +95,29 @@ button:focus-visible {
 .member-picker {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   min-width: 0;
   font-size: var(--font-size);
-  font-weight: 700;
 }
 
 .member-label {
-  color: #929292;
   white-space: nowrap;
 }
 
 .member-options {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
 }
 
 .member-button {
-  min-height: 44px;
+  /* min-height: 44px; */
   padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .member-button {
@@ -107,17 +125,20 @@ button:focus-visible {
   transition: color 300ms cubic-bezier(.2, .65, .3, 1);
 }
 
-.member-button::after {
+.member-button::after, .member-field::after {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 7px;
-  height: 2px;
+  bottom: -2px;
+  height: 1.8px;
   background: currentColor;
+  pointer-events: none;
+}
+
+.member-button::after {
   transform: scaleX(0);
   transform-origin: left;
-  pointer-events: none;
 }
 
 .member-button[aria-pressed="true"] {
@@ -150,9 +171,8 @@ button:focus-visible {
 }
 
 .intro {
-  max-width: 800px;
+  max-width: 39em;
   font-size: var(--font-size);
-  font-weight: 700;
   line-height: 1.3;
 }
 
@@ -161,15 +181,16 @@ button:focus-visible {
 }
 
 .intro p+p {
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .intro em {
-  font-weight: inherit;
+  font-weight: 400;
 }
 
-.calendar {
-  margin-top: 66px;
+.bot-link {
+  color: #4D74FF;
+  text-decoration: underline;
 }
 
 .week+.week {
@@ -203,6 +224,7 @@ button:focus-visible {
   font-size: var(--font-size);
   line-height: 1.3;
   font-style: italic;
+  font-weight: 400;
   overflow-wrap: anywhere;
 }
 
@@ -231,7 +253,7 @@ button:focus-visible {
 
 .day-date {
   display: block;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .attendance {
@@ -346,27 +368,39 @@ button:focus-visible {
     position: sticky;
     top: 0;
     z-index: 10;
+    max-block-size: 42dvh;
+    overflow-y: auto;
   }
 
   .header-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    padding-block: 20px 0;
+    min-height: 44px;
+    padding-block: 8px;
   }
 
   .brand {
-    order: -1;
+    display: none;
   }
 
+  .intro-wrap { padding-block: 16px 14px; }
+
+  .member-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    row-gap: 12px;
+    padding-block: 12px 18px;
+  }
+
+  .member-bar .member-form { order: -1; }
+
   .member-picker {
-    gap: 16px;
+    flex-wrap: wrap;
+    gap: 0 12px;
     width: 100%;
   }
 
-  .member-options {
-    gap: 16px;
-  }
+  .member-options { display: contents; }
+  .member-label { padding-block: 10px; }
+  /* .member-button { min-height: 40px; } */
 
   .page {
     padding-top: 22px;
@@ -375,10 +409,6 @@ button:focus-visible {
   .intro {
     font-size: var(--font-size);
     line-height: 1.3;
-  }
-
-  .calendar {
-    margin-top: 20px;
   }
 
   .days {
@@ -430,36 +460,24 @@ button:focus-visible {
   }
 
   .member-picker {
-    gap: 12px;
-    font-size: var(--font-size);
-  }
-
-  .member-options {
-    gap: 12px;
+    gap: 0 4px;
   }
 }
 
 /* Uniform type, with wrapping instead of smaller mobile labels. */
-.member-picker, .member-options {
+.member-options {
   flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .member-button {
   flex: 0 0 auto;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .day-date {
   overflow-wrap: anywhere;
-}
-
-@media (max-width: 767.98px) {
-  .member-picker {
-    row-gap: 0;
-  }
-
-  .member-options {
-    column-gap: 12px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -475,4 +493,30 @@ button:focus-visible {
     grid-template-rows: subgrid;
     grid-row: span 2;
   }
+}
+.member-form { width: 12em; max-width: 100%; margin: 0; }
+.member-field { position: relative; }
+.member-field::after { background: #e0e0e0; }
+.member-field:focus-within::after { background: currentColor; }
+.member-form input {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+.member-form input::placeholder {
+  color: #CFCFCF;
+  opacity: 1;
+}
+.member-form input:focus { outline: none; }
+.member-form input:disabled { cursor: not-allowed; }
+.member-form[aria-busy="true"] input { opacity: .65; }
+.member-error {
+  margin: 4px 0 0;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }

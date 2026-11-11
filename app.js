@@ -1,10 +1,17 @@
 import { createVisualEffects } from './visual-effects.mjs';
+import { MAX_MEMBERS } from './participants.mjs?v=members-20';
 (() => {
   "use strict";
-  const { MEMBERS, OFFICE_TIME_ZONE, dateId, calendarDates, isPast, canEdit, nextDayDelay } = window.OfficePlanner;
+  const { OFFICE_TIME_ZONE, dateId, calendarDates, isPast, canEdit, nextDayDelay } = window.OfficePlanner;
   const calendar = document.querySelector("#calendar");
   const options = document.querySelector("#member-options");
   const announcement = document.querySelector("#announcement");
+  const memberForm = document.querySelector('#member-form');
+  const memberInput = document.querySelector('#new-member-name');
+  const memberError = document.querySelector('#member-error');
+  let addingMember = false;
+  let createdSelection = null;
+  let membersFingerprint = '';
   const effects = createVisualEffects(calendar, document.querySelector('.site-header'));
   let identityRendered = false;
   let visualMember = null;
@@ -27,17 +34,18 @@ import { createVisualEffects } from './visual-effects.mjs';
   function renderIdentity() {
     const changed = identityRendered && visualMember !== selectedMember;
     effects.identity(selectedMember);
-    const current = MEMBERS.find(member => member.id === selectedMember);
+    const current = store.members.find(member => member.id === selectedMember);
     if (current) document.documentElement.style.setProperty("--accent-color", current.color);
     else document.documentElement.style.removeProperty("--accent-color");
-    options.replaceChildren(...MEMBERS.map(member => {
+    const buttons = store.members.map(member => {
       const button = element("button", "member-button", member.name);
       button.type = "button";
       button.dataset.member = member.id;
       button.setAttribute("aria-pressed", String(member.id === selectedMember));
       button.classList.toggle('is-entering', changed && member.id === selectedMember);
       return button;
-    }));
+    });
+    options.replaceChildren(...buttons);
     visualMember = selectedMember;
     identityRendered = true;
   }
@@ -87,9 +95,9 @@ import { createVisualEffects } from './visual-effects.mjs';
       card.classList.toggle("is-selected", selected);
       effects.sync(card, selected);
       const names = marks.map(mark => {
-        const person = MEMBERS.find(member => member.id === mark.memberId);
-        return element("span", person.id === selectedMember ? "attendee is-current" : "attendee", person.name);
-      });
+        const person = store.members.find(member => member.id === mark.memberId);
+        return person ? element("span", person.id === selectedMember ? "attendee is-current" : "attendee", person.name) : null;
+      }).filter(Boolean);
       card.querySelector(".attendance").replaceChildren(...names);
       const description = card.dataset.label;
       card.setAttribute("aria-label", `${description}. ${names.length ? `Отметились: ${names.map(name => name.textContent).join(", ")}.` : "Пока никто не отметился."}${isPast(card.dataset.date) ? " Прошедший день." : ""}`);
@@ -103,6 +111,23 @@ import { createVisualEffects } from './visual-effects.mjs';
   function refresh() {
     const now = new Date();
     store.ensureWindow(now);
+    if (createdSelection && store.members.some(member => member.id === createdSelection)) {
+      selectedMember = createdSelection;
+      store.setMember(selectedMember);
+      createdSelection = null;
+    }
+    if (store.state.membersReady && selectedMember && !store.members.some(member => member.id === selectedMember)) {
+      selectedMember = null;
+      pendingDate = null;
+      store.clearMember();
+      announcement.textContent = 'Профиль удалён. Выберите другого участника в шапке.';
+    }
+    const fingerprint = JSON.stringify(store.members);
+    if (fingerprint !== membersFingerprint || visualMember !== selectedMember) {
+      membersFingerprint = fingerprint;
+      renderIdentity();
+    }
+    updateMemberForm();
     if (pendingDate && !canEdit(pendingDate, now)) pendingDate = null;
     if (renderedToday !== dateId(now)) { renderedToday = dateId(now); renderCalendar(now); }
     renderAttendance();
@@ -115,8 +140,8 @@ import { createVisualEffects } from './visual-effects.mjs';
       const added = await store.toggle(date, memberId);
       if (added === undefined) return;
       effects.confirmed(date, memberId, added);
-      const person = MEMBERS.find(member => member.id === memberId);
-      announcement.textContent = `${person.name}, ${date}: ${added ? 'отметка сохранена' : 'отметка снята'}.`;
+      const person = store.members.find(member => member.id === memberId);
+      announcement.textContent = `${person?.name || 'Участник'}, ${date}: ${added ? 'отметка сохранена' : 'отметка снята'}.`;
     } catch { announcement.textContent = 'Не удалось сохранить отметку.'; }
   }
   calendar.addEventListener('click', event => {
@@ -127,7 +152,7 @@ import { createVisualEffects } from './visual-effects.mjs';
     if (!selectedMember) {
       pendingDate = card.dataset.date;
       announcement.textContent = 'Выберите участника в шапке.';
-      options.querySelector('button').focus();
+      options.querySelector('button')?.focus();
     } else applyMark(card.dataset.date);
   });
   options.addEventListener('click', event => {
@@ -142,6 +167,40 @@ import { createVisualEffects } from './visual-effects.mjs';
     if (pending && canEdit(pending)) applyMark(pending);
   });
   options.addEventListener('keydown', event => { if (event.key === 'Escape') pendingDate = null; });
+  function updateMemberForm() {
+    const busy = addingMember || store.state.membersSaving;
+    const full = store.members.length >= MAX_MEMBERS;
+    memberInput.disabled = full || (!busy && !store.state.membersReady);
+    memberInput.readOnly = busy;
+    memberInput.title = full ? `Уже есть ${MAX_MEMBERS} участников` : '';
+    memberForm.setAttribute('aria-busy', String(busy));
+  }
+  memberInput.addEventListener('input', () => { memberError.hidden = true; });
+  memberInput.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || addingMember || event.isComposing) return;
+    event.preventDefault();
+    memberInput.value = '';
+    memberError.hidden = true;
+    memberInput.blur();
+  });
+  memberForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (addingMember || store.state.membersSaving || memberInput.disabled) return;
+    addingMember = true;
+    memberError.hidden = true;
+    updateMemberForm();
+    try {
+      const profile = await store.addMember(memberInput.value);
+      createdSelection = profile.id;
+      memberInput.value = '';
+      memberInput.blur();
+      refresh();
+      announcement.textContent = `Добавлен участник ${profile.name}.`;
+    } catch (error) {
+      memberError.textContent = error.message || 'Не удалось добавить участника. Попробуйте ещё раз.';
+      memberError.hidden = false;
+    } finally { addingMember = false; updateMemberForm(); }
+  });
   store.subscribe(refresh);
   window.addEventListener('focus', refresh);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });

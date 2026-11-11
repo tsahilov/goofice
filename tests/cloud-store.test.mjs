@@ -7,6 +7,7 @@ function setup() {
  const watches = [], docs = new Map(); let reject = false;
  const api = {
   doc: (_, ...path) => path.join('/'), collection: (_, ...path) => path.join('/'), limit: n => n, query: (...args) => args,
+  where: (...args) => args, documentId: () => '__name__',
   Timestamp: { fromDate: date => date }, serverTimestamp: () => ({ seconds: 100, nanoseconds: 5 }),
   onSnapshot: (query, metadata, next, error) => { const w = {query,next,error, stopped:false}; watches.push(w); return () => w.stopped=true; },
   runTransaction: async (_, fn) => {
@@ -18,7 +19,7 @@ function setup() {
  };
  const writes=[];
  const storage={getItem:()=> 'dasha', setItem:(...args)=>writes.push(args)};
- const store=createCloudStore({api,db:{},storage,planner});
+ const store=createCloudStore({api,db:{},storage,planner,registry:{members:planner.MEMBERS,state:{ready:true,loading:false,error:"",saving:false},subscribe:()=>()=>{},destroy(){}}});
  const dates=store.ensureWindow();
  const send=(watch, values=[], metadata={fromCache:false,hasPendingWrites:false})=>watch.next({metadata,docs:values.map(([id,data])=>({id,data:()=>data}))});
  return {store, watches, dates, docs, writes, send, fail:()=>reject=true, ready:()=>watches.forEach(w=>send(w))};

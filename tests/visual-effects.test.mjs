@@ -48,5 +48,5 @@ test('contour follows size changes with constant radius and no scaling stroke', 
 test('reduced motion suppresses new drawings and cancels running drawings immediately', () => {
  const f=fixture();f.classes.add('is-selected');f.preference.matches=true;f.effects.confirmed(f.card.dataset.date,'alan',true);assert.equal(f.animations.length,0);
  f.preference.matches=false;f.effects.confirmed(f.card.dataset.date,'alan',true);f.preference.matches=true;f.preference.change();assert.ok(f.animations[0].cancelled);
- const css=readFileSync(new URL('../styles.css',import.meta.url),'utf8');assert.match(css,/@media \(prefers-reduced-motion: reduce\)/);assert.match(css,/animation: none !important; transition: none !important;/);
+ const css=readFileSync(new URL('../styles.css',import.meta.url),'utf8');assert.match(css,/@media \(prefers-reduced-motion: reduce\)/);assert.match(css,/animation: none !important;\s*transition: none !important;/);
 });

@@ -1,7 +1,50 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function member(id) { return id in ['alan', 'denis', 'anya', 'dasha']; }
+    function maxMembers() { return 20; }
+    function legacy(id) { return id in ['alan', 'denis', 'anya', 'dasha']; }
+    function registryExists() { return exists(/databases/$(database)/documents/team/registry); }
+    function member(id) {
+      return registryExists() ? id in get(/databases/$(database)/documents/team/registry).data.profiles : legacy(id);
+    }
+    function initialRegistry() { return {"version":1,"profiles":{"alan":{"id":"alan","name":"Алан","color":"#ff39b6","nameKey":"алан"},"denis":{"id":"denis","name":"Денис","color":"#ff791a","nameKey":"денис"},"anya":{"id":"anya","name":"Аня","color":"#20c6a6","nameKey":"аня"},"dasha":{"id":"dasha","name":"Даша","color":"#2400ff","nameKey":"даша"}},"names":{"алан":"alan","денис":"denis","аня":"anya","даша":"dasha"},"colors":{"#ff39b6":"alan","#ff791a":"denis","#20c6a6":"anya","#2400ff":"dasha"},"usedIds":{"alan":true,"denis":true,"anya":true,"dasha":true},"order":["alan","denis","anya","dasha"]}; }
+    function appendOnly(old, next) {
+      let id = next.order[next.order.size() - 1];
+      let p = next.profiles[id];
+      return next.keys().hasAll(['version','profiles','order','names','colors','usedIds'])
+        && next.keys().hasOnly(['version','profiles','order','names','colors','usedIds'])
+        && next.version == 1 && old.order.size() < maxMembers()
+        && id.matches('^p_[0-9a-f]{32}$') && !(id in old.usedIds)
+        && next.order == old.order.concat([id])
+        && next.profiles.size() == next.order.size()
+        && next.profiles.diff(old.profiles).affectedKeys().hasOnly([id])
+        && !(id in old.profiles)
+        && p.keys().hasAll(['id','name','nameKey','color'])
+        && p.keys().hasOnly(['id','name','nameKey','color'])
+        && p.id == id && p.name is string && p.name.size() <= 24
+        && p.name.matches('^[A-Za-zА-Яа-яЁё]([A-Za-zА-Яа-яЁё -]{0,22}[A-Za-zА-Яа-яЁё])?$')
+        && !p.name.matches('.*  .*')
+        // Canonical lowercase key + Unicode-aware case-insensitive RE2 comparison.
+        // The key alphabet cannot contain regexp metacharacters.
+        && p.nameKey.matches('^[a-zа-яё]([a-zа-яё -]{0,22}[a-zа-яё])?$')
+        && p.name.matches('(?i)' + p.nameKey) && !(p.nameKey in old.names)
+        && p.color in [
+          "#ff39b6","#ff791a","#20c6a6","#2400ff","#b46bce","#377eb8","#b07a13","#159c97","#d44b55","#718c31","#5861a5","#9b604d",
+          "#a32068","#006852","#82272d","#856000","#6840ac","#087fa2","#4d611b","#45566a"
+        ] && !(p.color in old.colors)
+        && next.names.diff(old.names).affectedKeys().hasOnly([p.nameKey])
+        && next.names[p.nameKey] == id && next.names.size() == next.order.size()
+        && next.colors.diff(old.colors).affectedKeys().hasOnly([p.color])
+        && next.colors[p.color] == id && next.colors.size() == next.order.size()
+        && next.usedIds.diff(old.usedIds).affectedKeys().hasOnly([id])
+        && next.usedIds[id] == true && next.usedIds.size() == old.usedIds.size() + 1;
+    }
+    match /team/registry {
+      allow get: if true;
+      allow create: if request.resource.data == initialRegistry();
+      allow update: if appendOnly(resource.data, request.resource.data);
+      allow delete: if false;
+    }
     function day(date) {
       return timestamp.date(int(date.split('-')[0]), int(date.split('-')[1]), int(date.split('-')[2]));
     }
@@ -15,7 +58,7 @@ service cloud.firestore {
     }
     match /days/{date}/marks/{memberId} {
       allow get: if validDate(date) && member(memberId);
-      allow list: if validDate(date) && request.query.limit != null && request.query.limit <= 4;
+      allow list: if validDate(date) && request.query.limit != null && request.query.limit <= maxMembers();
       allow create: if editable(date) && member(memberId)
         && request.resource.data.keys().hasAll(['memberId', 'dayStart', 'createdAt'])
         && request.resource.data.keys().hasOnly(['memberId', 'dayStart', 'createdAt'])

@@ -1,12 +1,5 @@
-import { createCloudStore } from './cloud-store.mjs';
-const config = {
-  apiKey: 'AIzaSyB81o01cA0z6Alxf5tBnOMoqcBUlFOUZvc',
-  authDomain: 'gooffice-5f6c0.firebaseapp.com',
-  projectId: 'gooffice-5f6c0',
-  storageBucket: 'gooffice-5f6c0.firebasestorage.app',
-  messagingSenderId: '816071174706',
-  appId: '1:816071174706:web:d7b470866a79ad0bf5aa2b',
-};
+import { createCloudStore } from './cloud-store.mjs?v=members-20';
+import { firebaseConfig as config } from './firebase-config.mjs';
 // Pinned modular browser SDK; no build tooling or npm required.
 try {
   const [{ initializeApp }, api] = await Promise.all([
@@ -17,7 +10,7 @@ try {
   let storage;
   try { storage = window.localStorage; } catch { storage = null; }
   window.goofficeStore = createCloudStore({ api, db, storage, planner: window.OfficePlanner });
-  await import('./app.js');
+  await import('./app.js?v=members-20');
 } catch (error) {
   const note = document.querySelector('#storage-note');
   note.classList.remove('sr-only');
