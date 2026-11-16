@@ -45,7 +45,8 @@ button {
   touch-action: manipulation;
 }
 
-button:focus-visible {
+button:focus-visible,
+.bot-link:focus-visible {
   outline: 2px dashed #202020;
   outline-offset: 4px;
 }
@@ -143,10 +144,10 @@ button:focus-visible {
 
 .member-button[aria-pressed="true"] {
   color: var(--accent-color);
-  transition: none;
 }
 
 .member-button[aria-pressed="true"]::after {
+  background: var(--accent-color);
   transform: scaleX(1);
 }
 
@@ -197,12 +198,17 @@ button:focus-visible {
 @media (hover: hover) {
   .bot-link:hover {
     color: #83F706;
-    transition: none;
+    transition-duration: 0s;
   }
-}
 
-.bot-link:focus-visible {
-  color: #83F706;
+  .member-button:hover {
+    color: #8c8c8c;
+    transition-duration: 0s;
+  }
+
+  .member-button[aria-pressed="true"]:hover {
+    color: color-mix(in srgb, var(--accent-color) 72%, #202020);
+  }
 }
 
 .week+.week {
@@ -319,11 +325,6 @@ button:focus-visible {
 @media (hover: hover) and (pointer: fine) {
   .day:not(:disabled):hover {
     background: var(--hover-color);
-    transition-duration: 0s;
-  }
-
-  .member-button:not([aria-pressed="true"]):hover {
-    color: rgba(140, 140, 140, 1);;
     transition-duration: 0s;
   }
 }
