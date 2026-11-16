@@ -191,12 +191,13 @@ button:focus-visible {
 .bot-link {
   color: #4D74FF;
   text-decoration: underline;
-  transition: color 200ms ease;
+  transition: color 300ms cubic-bezier(.2, .65, .3, 1);
 }
 
 @media (hover: hover) {
   .bot-link:hover {
     color: #83F706;
+    transition: none;
   }
 }
 
