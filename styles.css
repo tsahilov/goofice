@@ -191,6 +191,17 @@ button:focus-visible {
 .bot-link {
   color: #4D74FF;
   text-decoration: underline;
+  transition: color 200ms ease;
+}
+
+@media (hover: hover) {
+  .bot-link:hover {
+    color: #83F706;
+  }
+}
+
+.bot-link:focus-visible {
+  color: #83F706;
 }
 
 .week+.week {
