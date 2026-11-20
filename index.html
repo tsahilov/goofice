@@ -8,8 +8,10 @@
   <meta name="description" content="Планировать дни, зачем-то">
   <title>gooffice</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./styles.css?v=composition-7">
+  <link rel="stylesheet" href="./styles.css?v=archive-1">
+  <link rel="stylesheet" href="./archive/archive.css">
   <script src="./data.js?v=participants-1" defer></script>
+  <script type="module" src="./archive/list.mjs"></script>
   <script type="module" src="./firebase-init.mjs?v=members-20"></script>
 </head>
 
@@ -43,6 +45,9 @@
   </div>
   <main class="page">
     <div class="calendar" id="calendar" aria-label="Календарь походов в офис"></div>
+    <nav class="office-archive" id="archive" aria-labelledby="archive-label">
+      <span id="archive-label">Мы тусили в офисе в эти дни:</span>
+    </nav>
     <p class="storage-note" id="storage-note" role="status">Загрузка отметок…</p>
     <noscript>Для календаря нужен JavaScript. Включите его в настройках браузера.</noscript>
   </main>

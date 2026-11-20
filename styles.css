@@ -46,7 +46,9 @@ button {
 }
 
 button:focus-visible,
-.bot-link:focus-visible {
+.bot-link:focus-visible,
+.text-link:focus-visible,
+.publication-brand:focus-visible {
   outline: 2px dashed #202020;
   outline-offset: 4px;
 }
@@ -189,14 +191,16 @@ button:focus-visible,
   font-weight: 400;
 }
 
-.bot-link {
+.bot-link,
+.text-link {
   color: #4D74FF;
   text-decoration: underline;
   transition: color 300ms cubic-bezier(.2, .65, .3, 1);
 }
 
 @media (hover: hover) {
-  .bot-link:hover {
+  .bot-link:hover,
+  .text-link:hover {
     color: #83F706;
     transition-duration: 0s;
   }
